@@ -1,4 +1,3 @@
-from dateutil import parser
 import streamlit as st
 import sqlite3
 from textblob import TextBlob
@@ -69,7 +68,6 @@ def signup():
         try:
             cursor.execute("INSERT INTO users (username, password) VALUES (?, ?)", (username, password))
             conn.commit()
-
             st.success("Account created! You can now log in.")
         except sqlite3.IntegrityError:
             st.error("Username already exists.")
@@ -78,15 +76,6 @@ if not st.session_state.logged_in:
     option = st.radio("Choose:", ["Login", "Create Account"])
     login() if option == "Login" else signup()
     st.stop()
-
-def parse_date(date_str):
-    for fmt in ('%Y-%m-%d %H:%M:%S.%f', '%Y-%m-%d %H:%M:%S'):
-        try:
-            return datetime.strptime(date_str, fmt)
-        except ValueError:
-            continue
-    return None
-
 
 # 🔓 Logout option
 st.sidebar.write(f"👤 Logged in as: `{st.session_state.username}`")
@@ -127,7 +116,6 @@ if menu == "➕ Add Entry":
             val = (datetime.now(), text, polarity, subjectivity, st.session_state.user_id)
             cursor.execute(sql, val)
             conn.commit()
-
             mood_score = round((polarity + 1) * 5, 1)
             thought_score = round(subjectivity * 10, 1)
             st.success("✅ Entry saved successfully!")
@@ -144,7 +132,7 @@ elif menu == "📖 View Entries":
                 thought_score = round(subj * 10, 1)
                 st.markdown(f"""
                 ---
-                🗓️ **{datetime.strptime(date, '%Y-%m-%d %H:%M:?.%f').strftime('%Y-%m-%d %H:%M')}**
+                🗓️ **{date.strftime('%Y-%m-%d %H:%M')}**
                 📝 *{content}*
                 😊 **Mood Score**: `{mood_score}/10`  
                 🤔 **Thought Depth**: `{thought_score}/10`
@@ -164,10 +152,9 @@ elif menu == "🔍 Search Entries":
                 for date, content, pol, subj in entries:
                     mood_score = round((pol + 1) * 5, 1)
                     thought_score = round(subj * 10, 1)
-                    formatted_date = parser.parse(str(date)).strftime('%Y-%m-%d %H:%M')
                     st.markdown(f"""
                     ---
-                    🗓️ **{datetime.strptime(date, '%Y-%m-%d %H:%M:?.%f').strftime('%Y-%m-%d %H:%M')}**
+                    🗓️ **{date.strftime('%Y-%m-%d %H:%M')}**
                     📝 *{content}*
                     😊 **Mood Score**: `{mood_score}/10`  
                     🤔 **Thought Depth**: `{thought_score}/10`
@@ -191,7 +178,7 @@ elif menu == "🔍 Search Entries":
                     thought_score = round(subj * 10, 1)
                     st.markdown(f"""
                     ---
-                    🗓️ **{datetime.strptime(date, '%Y-%m-%d %H:%M:?.%f').strftime('%Y-%m-%d %H:%M')}**
+                    🗓️ **{date.strftime('%Y-%m-%d %H:%M')}**
                     📝 *{content}*
                     😊 **Mood Score**: `{mood_score}/10`  
                     🤔 **Thought Depth**: `{thought_score}/10`
@@ -246,7 +233,7 @@ elif menu == "📤 Export Entries":
         for date, content, pol, subj in entries:
             mood_score = round((pol + 1) * 5, 1)
             thought_score = round(subj * 10, 1)
-            lines += f"🗓️ {datetime.strptime(date, '%Y-%m-%d %H:%M:?.%f').strftime('%Y-%m-%d %H:%M')}\n📝 {content}\n😊 Mood Score: {mood_score}/10\n🤔 Thought Depth: {thought_score}/10\n{'-'*40}\n"
+            lines += f"🗓️ {date.strftime('%Y-%m-%d %H:%M')}\n📝 {content}\n😊 Mood Score: {mood_score}/10\n🤔 Thought Depth: {thought_score}/10\n{'-'*40}\n"
         st.download_button("📥 Download Diary (.txt)", lines, "my_moments_diary.txt", "text/plain")
     else:
         st.info("❌ No entries found to export.")
@@ -273,23 +260,6 @@ elif menu == "🤖 Train Your AI Twin":
         - 🤔 **Thinking Style**: `{thought_score}/10`
         - 🧾 **Summary**: You tend to be {"positive" if polarity > 0.2 else "neutral" if -0.2 <= polarity <= 0.2 else "reflective"} and {"introspective" if subjectivity > 0.5 else "observant"}.
         """)
-
-elif menu == "🗑️ Delete Entry":
-    st.header("🗑️ Delete a Diary Entry")
-    cursor.execute("SELECT id, entry_date, content FROM diary_entries ORDER BY entry_date DESC")
-    entries = cursor.fetchall()
-    if entries:
-        options = [f"{entry[0]} | {entry[1]} | {entry[2][:30]}..." for entry in entries]
-        selected = st.selectbox("Select an entry to delete:", options)
-        if st.button("Delete Selected Entry"):
-            entry_id = int(selected.split(" | ")[0])
-            cursor.execute("DELETE FROM diary_entries WHERE id = ?", (entry_id,))
-            conn.commit()
-            st.success("✅ Entry deleted successfully.")
-    else:
-        st.info("No entries to delete.")
-
-
 
 # Footer
 st.markdown("---")
