@@ -1,9 +1,2 @@
-📝 Deployment Requirements (requirements.txt for GitHub Hosting)
-
-Below is the content for your requirements.txt file. This tells Streamlit Cloud or any Python environment what packages to install:
-
 streamlit
-mysql-connector-python
 textblob
-
-📦 To generate it manually if needed: use pip freeze > requirements.txt from your environment.
