@@ -235,7 +235,7 @@ elif menu == "📤 Export Entries":
         for date, content, pol, subj in entries:
             mood_score = round((pol + 1) * 5, 1)
             thought_score = round(subj * 10, 1)
-            lines += f"🗓️ {date.strftime('%Y-%m-%d %H:%M')}\n📝 {content}\n😊 Mood Score: {mood_score}/10\n🤔 Thought Depth: {thought_score}/10\n{'-'*40}\n"
+            lines += f"🗓️ {datetime.strptime(date, '%Y-%m-%d %H:%M:%S.%f').strftime('%Y-%m-%d %H:%M')}\n📝 {content}\n😊 Mood Score: {mood_score}/10\n🤔 Thought Depth: {thought_score}/10\n{'-'*40}\n"
         st.download_button("📥 Download Diary (.txt)", lines, "my_moments_diary.txt", "text/plain")
     else:
         st.info("❌ No entries found to export.")
