@@ -1,16 +1,13 @@
 import streamlit as st
-import mysql.connector
+import sqlite3
 from textblob import TextBlob
 from datetime import datetime
 
 # Database setup
-mydb = mysql.connector.connect(
-    host="localhost",
-    user="root",
-    password="dhruv007",
-    database="mymoments_diary"
-)
-cursor = mydb.cursor()
+# SQLite DB setup
+conn = sqlite3.connect("mymoments_diary.db", check_same_thread=False)
+cursor = conn.cursor()
+
 
 # Page settings
 st.set_page_config(page_title="My Moments Diary", page_icon="📝")
@@ -28,7 +25,7 @@ def login():
     username = st.text_input("Username")
     password = st.text_input("Password", type="password")
     if st.button("Login"):
-        cursor.execute("SELECT id FROM users WHERE username=%s AND password=%s", (username, password))
+        cursor.execute("SELECT id FROM users WHERE username=? AND password=?", (username, password))
         user = cursor.fetchone()
         if user:
             st.session_state.logged_in = True
@@ -46,10 +43,11 @@ def signup():
     password = st.text_input("New Password", type="password")
     if st.button("Create Account"):
         try:
-            cursor.execute("INSERT INTO users (username, password) VALUES (%s, %s)", (username, password))
-            mydb.commit()
+            cursor.execute("INSERT INTO users (username, password) VALUES (?, ?)", (username, password))
+            conn.commit()
+
             st.success("Account created! You can now log in.")
-        except mysql.connector.errors.IntegrityError:
+        except sqlite3.IntegrityError:
             st.error("Username already exists.")
 
 if not st.session_state.logged_in:
@@ -92,10 +90,11 @@ if menu == "➕ Add Entry":
             blob = TextBlob(text)
             polarity = blob.sentiment.polarity
             subjectivity = blob.sentiment.subjectivity
-            sql = "INSERT INTO diary_entries (entry_date, content, polarity, subjectivity, user_id) VALUES (%s, %s, %s, %s, %s)"
+            sql = "INSERT INTO diary_entries (entry_date, content, polarity, subjectivity, user_id) VALUES (?, ?, ?, ?, ?)"
             val = (datetime.now(), text, polarity, subjectivity, st.session_state.user_id)
             cursor.execute(sql, val)
-            mydb.commit()
+            conn.commit()
+
             mood_score = round((polarity + 1) * 5, 1)
             thought_score = round(subjectivity * 10, 1)
             st.success("✅ Entry saved successfully!")
@@ -104,7 +103,7 @@ if menu == "➕ Add Entry":
 # 📖 VIEW ENTRIES
 elif menu == "📖 View Entries":
     if st.button("Show All Entries"):
-        cursor.execute("SELECT entry_date, content, polarity, subjectivity FROM diary_entries WHERE user_id = %s ORDER BY entry_date DESC", (st.session_state.user_id,))
+        cursor.execute("SELECT entry_date, content, polarity, subjectivity FROM diary_entries WHERE user_id = ? ORDER BY entry_date DESC", (st.session_state.user_id,))
         entries = cursor.fetchall()
         if entries:
             for date, content, pol, subj in entries:
@@ -126,7 +125,7 @@ elif menu == "🔍 Search Entries":
     if search_mode == "📅 Date":
         date_input = st.date_input("Pick a date to search")
         if st.button("Search by Date"):
-            cursor.execute("SELECT entry_date, content, polarity, subjectivity FROM diary_entries WHERE DATE(entry_date) = %s AND user_id = %s", (date_input, st.session_state.user_id))
+            cursor.execute("SELECT entry_date, content, polarity, subjectivity FROM diary_entries WHERE DATE(entry_date) = ? AND user_id = ?", (date_input, st.session_state.user_id))
             entries = cursor.fetchall()
             if entries:
                 for date, content, pol, subj in entries:
@@ -145,11 +144,11 @@ elif menu == "🔍 Search Entries":
         mood_input = st.selectbox("Choose a mood to filter by", ["Positive", "Negative", "Neutral"])
         if st.button("Search by Mood"):
             if mood_input == "Positive":
-                query = "SELECT entry_date, content, polarity, subjectivity FROM diary_entries WHERE polarity > 0.2 AND user_id = %s"
+                query = "SELECT entry_date, content, polarity, subjectivity FROM diary_entries WHERE polarity > 0.2 AND user_id = ?"
             elif mood_input == "Negative":
-                query = "SELECT entry_date, content, polarity, subjectivity FROM diary_entries WHERE polarity < -0.2 AND user_id = %s"
+                query = "SELECT entry_date, content, polarity, subjectivity FROM diary_entries WHERE polarity < -0.2 AND user_id = ?"
             else:
-                query = "SELECT entry_date, content, polarity, subjectivity FROM diary_entries WHERE polarity BETWEEN -0.2 AND 0.2 AND user_id = %s"
+                query = "SELECT entry_date, content, polarity, subjectivity FROM diary_entries WHERE polarity BETWEEN -0.2 AND 0.2 AND user_id = ?"
             cursor.execute(query, (st.session_state.user_id,))
             entries = cursor.fetchall()
             if entries:
@@ -169,7 +168,7 @@ elif menu == "🔍 Search Entries":
 # 🗣️ TALK TO AI TWIN
 elif menu == "🗣️ Talk to Your AI Twin":
     st.header("🗣️ Chat with Your AI Twin")
-    cursor.execute("SELECT content FROM diary_entries WHERE user_id = %s", (st.session_state.user_id,))
+    cursor.execute("SELECT content FROM diary_entries WHERE user_id = ?", (st.session_state.user_id,))
     entries = cursor.fetchall()
     if not entries:
         st.info("You need to write some diary entries first.")
@@ -192,20 +191,20 @@ elif menu == "📤 Export Entries":
     st.header("📤 Export Your Diary")
     export_mode = st.radio("Choose export type:", ["All Entries", "By Date", "By Mood"])
     if export_mode == "All Entries":
-        cursor.execute("SELECT entry_date, content, polarity, subjectivity FROM diary_entries WHERE user_id = %s", (st.session_state.user_id,))
+        cursor.execute("SELECT entry_date, content, polarity, subjectivity FROM diary_entries WHERE user_id = ?", (st.session_state.user_id,))
         entries = cursor.fetchall()
     elif export_mode == "By Date":
         date_input = st.date_input("Pick a date")
-        cursor.execute("SELECT entry_date, content, polarity, subjectivity FROM diary_entries WHERE DATE(entry_date) = %s AND user_id = %s", (date_input, st.session_state.user_id))
+        cursor.execute("SELECT entry_date, content, polarity, subjectivity FROM diary_entries WHERE DATE(entry_date) = ? AND user_id = ?", (date_input, st.session_state.user_id))
         entries = cursor.fetchall()
     elif export_mode == "By Mood":
         mood_input = st.selectbox("Choose mood", ["Positive", "Negative", "Neutral"])
         if mood_input == "Positive":
-            query = "SELECT entry_date, content, polarity, subjectivity FROM diary_entries WHERE polarity > 0.2 AND user_id = %s"
+            query = "SELECT entry_date, content, polarity, subjectivity FROM diary_entries WHERE polarity > 0.2 AND user_id = ?"
         elif mood_input == "Negative":
-            query = "SELECT entry_date, content, polarity, subjectivity FROM diary_entries WHERE polarity < -0.2 AND user_id = %s"
+            query = "SELECT entry_date, content, polarity, subjectivity FROM diary_entries WHERE polarity < -0.2 AND user_id = ?"
         else:
-            query = "SELECT entry_date, content, polarity, subjectivity FROM diary_entries WHERE polarity BETWEEN -0.2 AND 0.2 AND user_id = %s"
+            query = "SELECT entry_date, content, polarity, subjectivity FROM diary_entries WHERE polarity BETWEEN -0.2 AND 0.2 AND user_id = ?"
         cursor.execute(query, (st.session_state.user_id,))
         entries = cursor.fetchall()
     if entries:
@@ -221,7 +220,7 @@ elif menu == "📤 Export Entries":
 # 🤖 TRAIN AI TWIN
 elif menu == "🤖 Train Your AI Twin":
     st.header("🤖 Your Digital Twin Reflection")
-    cursor.execute("SELECT content FROM diary_entries WHERE user_id = %s", (st.session_state.user_id,))
+    cursor.execute("SELECT content FROM diary_entries WHERE user_id = ?", (st.session_state.user_id,))
     entries = cursor.fetchall()
     if not entries:
         st.info("You need to write some diary entries first.")
