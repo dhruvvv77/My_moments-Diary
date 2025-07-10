@@ -96,7 +96,6 @@ menu = st.radio("Choose an option:", [
     "➕ Add Entry",
     "📖 View Entries",
     "🔍 Search Entries",
-    "🗑️ Delete Entry",
     "🗣️ Talk to Your AI Twin",
     "📤 Export Entries",
     "🤖 Train Your AI Twin"
