@@ -134,7 +134,7 @@ elif menu == "📖 View Entries":
                 thought_score = round(subj * 10, 1)
                 st.markdown(f"""
                 ---
-                🗓️ **{date.strftime('%Y-%m-%d %H:%M')}**
+                🗓️ **{datetime.strptime(date, '%Y-%m-%d %H:%M:%S.%f').strftime('%Y-%m-%d %H:%M')}**
                 📝 *{content}*
                 😊 **Mood Score**: `{mood_score}/10`  
                 🤔 **Thought Depth**: `{thought_score}/10`
@@ -156,7 +156,7 @@ elif menu == "🔍 Search Entries":
                     thought_score = round(subj * 10, 1)
                     st.markdown(f"""
                     ---
-                    🗓️ **{date.strftime('%Y-%m-%d %H:%M')}**
+                    🗓️ **{datetime.strptime(date, '%Y-%m-%d %H:%M:%S.%f').strftime('%Y-%m-%d %H:%M')}**
                     📝 *{content}*
                     😊 **Mood Score**: `{mood_score}/10`  
                     🤔 **Thought Depth**: `{thought_score}/10`
@@ -180,7 +180,7 @@ elif menu == "🔍 Search Entries":
                     thought_score = round(subj * 10, 1)
                     st.markdown(f"""
                     ---
-                    🗓️ **{date.strftime('%Y-%m-%d %H:%M')}**
+                    🗓️ **{datetime.strptime(date, '%Y-%m-%d %H:%M:%S.%f').strftime('%Y-%m-%d %H:%M')}**
                     📝 *{content}*
                     😊 **Mood Score**: `{mood_score}/10`  
                     🤔 **Thought Depth**: `{thought_score}/10`
