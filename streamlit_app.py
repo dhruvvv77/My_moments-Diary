@@ -1,3 +1,4 @@
+from dateutil import parser
 import streamlit as st
 import sqlite3
 from textblob import TextBlob
@@ -154,6 +155,7 @@ elif menu == "🔍 Search Entries":
                 for date, content, pol, subj in entries:
                     mood_score = round((pol + 1) * 5, 1)
                     thought_score = round(subj * 10, 1)
+                    formatted_date = parser.parse(str(date)).strftime('%Y-%m-%d %H:%M')
                     st.markdown(f"""
                     ---
                     🗓️ **{datetime.strptime(date, '%Y-%m-%d %H:%M:?.%f').strftime('%Y-%m-%d %H:%M')}**
