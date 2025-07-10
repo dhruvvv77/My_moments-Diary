@@ -134,7 +134,7 @@ elif menu == "📖 View Entries":
                 thought_score = round(subj * 10, 1)
                 st.markdown(f"""
                 ---
-                🗓️ **{datetime.strptime(date, '%Y-%m-%d %H:%M:%S.%f').strftime('%Y-%m-%d %H:%M')}**
+                🗓️ **{datetime.strptime(date, '%Y-%m-%d %H:%M:?.%f').strftime('%Y-%m-%d %H:%M')}**
                 📝 *{content}*
                 😊 **Mood Score**: `{mood_score}/10`  
                 🤔 **Thought Depth**: `{thought_score}/10`
@@ -156,7 +156,7 @@ elif menu == "🔍 Search Entries":
                     thought_score = round(subj * 10, 1)
                     st.markdown(f"""
                     ---
-                    🗓️ **{datetime.strptime(date, '%Y-%m-%d %H:%M:%S.%f').strftime('%Y-%m-%d %H:%M')}**
+                    🗓️ **{datetime.strptime(date, '%Y-%m-%d %H:%M:?.%f').strftime('%Y-%m-%d %H:%M')}**
                     📝 *{content}*
                     😊 **Mood Score**: `{mood_score}/10`  
                     🤔 **Thought Depth**: `{thought_score}/10`
@@ -180,7 +180,7 @@ elif menu == "🔍 Search Entries":
                     thought_score = round(subj * 10, 1)
                     st.markdown(f"""
                     ---
-                    🗓️ **{datetime.strptime(date, '%Y-%m-%d %H:%M:%S.%f').strftime('%Y-%m-%d %H:%M')}**
+                    🗓️ **{datetime.strptime(date, '%Y-%m-%d %H:%M:?.%f').strftime('%Y-%m-%d %H:%M')}**
                     📝 *{content}*
                     😊 **Mood Score**: `{mood_score}/10`  
                     🤔 **Thought Depth**: `{thought_score}/10`
@@ -235,7 +235,7 @@ elif menu == "📤 Export Entries":
         for date, content, pol, subj in entries:
             mood_score = round((pol + 1) * 5, 1)
             thought_score = round(subj * 10, 1)
-            lines += f"🗓️ {datetime.strptime(date, '%Y-%m-%d %H:%M:%S.%f').strftime('%Y-%m-%d %H:%M')}\n📝 {content}\n😊 Mood Score: {mood_score}/10\n🤔 Thought Depth: {thought_score}/10\n{'-'*40}\n"
+            lines += f"🗓️ {datetime.strptime(date, '%Y-%m-%d %H:%M:?.%f').strftime('%Y-%m-%d %H:%M')}\n📝 {content}\n😊 Mood Score: {mood_score}/10\n🤔 Thought Depth: {thought_score}/10\n{'-'*40}\n"
         st.download_button("📥 Download Diary (.txt)", lines, "my_moments_diary.txt", "text/plain")
     else:
         st.info("❌ No entries found to export.")
@@ -272,7 +272,7 @@ elif menu == "🗑️ Delete Entry":
         selected = st.selectbox("Select an entry to delete:", options)
         if st.button("Delete Selected Entry"):
             entry_id = int(selected.split(" | ")[0])
-            cursor.execute("DELETE FROM diary_entries WHERE id = %s", (entry_id,))
+            cursor.execute("DELETE FROM diary_entries WHERE id = ?", (entry_id,))
             conn.commit()
             st.success("✅ Entry deleted successfully.")
     else:
