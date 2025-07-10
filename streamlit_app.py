@@ -265,21 +265,16 @@ elif menu == "🤖 Train Your AI Twin":
 
 elif menu == "🗑️ Delete Entry":
     st.header("🗑️ Delete a Diary Entry")
-
-    # Fetch only entries of the current user
-    cursor.execute("SELECT id, entry_date, content FROM diary_entries WHERE user_id = ? ORDER BY entry_date DESC", (st.session_state.user_id,))
+    cursor.execute("SELECT id, entry_date, content FROM diary_entries ORDER BY entry_date DESC")
     entries = cursor.fetchall()
-
     if entries:
-        options = [f"{entry[0]} | {entry[1]} | {entry[2][:30]}..." for entry in entries]
+        options = [f"{entry[0]} | {entry[1].strftime('%Y-%m-%d %H:%M')} | {entry[2][:30]}..." for entry in entries]
         selected = st.selectbox("Select an entry to delete:", options)
-
         if st.button("Delete Selected Entry"):
             entry_id = int(selected.split(" | ")[0])
-            cursor.execute("DELETE FROM diary_entries WHERE id = ? AND user_id = ?", (entry_id, st.session_state.user_id))
+            cursor.execute("DELETE FROM diary_entries WHERE id = %s", (entry_id,))
             conn.commit()
             st.success("✅ Entry deleted successfully.")
-            st.rerun()
     else:
         st.info("No entries to delete.")
 
