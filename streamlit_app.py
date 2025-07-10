@@ -9,6 +9,29 @@ conn = sqlite3.connect("mymoments_diary.db", check_same_thread=False)
 cursor = conn.cursor()
 
 
+# Create tables if not exist
+cursor.execute('''
+CREATE TABLE IF NOT EXISTS users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT UNIQUE,
+    password TEXT
+)
+''')
+
+cursor.execute('''
+CREATE TABLE IF NOT EXISTS diary_entries (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    entry_date TIMESTAMP,
+    content TEXT,
+    polarity REAL,
+    subjectivity REAL,
+    user_id INTEGER,
+    FOREIGN KEY(user_id) REFERENCES users(id)
+)
+''')
+conn.commit()
+
+
 # Page settings
 st.set_page_config(page_title="My Moments Diary", page_icon="📝")
 
