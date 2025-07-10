@@ -79,6 +79,15 @@ if not st.session_state.logged_in:
     login() if option == "Login" else signup()
     st.stop()
 
+def parse_date(date_str):
+    for fmt in ('%Y-%m-%d %H:%M:%S.%f', '%Y-%m-%d %H:%M:%S'):
+        try:
+            return datetime.strptime(date_str, fmt)
+        except ValueError:
+            continue
+    return None
+
+
 # 🔓 Logout option
 st.sidebar.write(f"👤 Logged in as: `{st.session_state.username}`")
 if st.sidebar.button("🚪 Logout"):
